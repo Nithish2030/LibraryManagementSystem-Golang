@@ -1,45 +1,48 @@
-package main
+package library
 
 import (
+	"errors"
 	"fmt"
-	"strings"
 )
 
-// Library struct to manage a collection of books (both Book and EBook)
-type LibraryEnhanced struct {
-	Books []BookInterface
+type Library struct {
+	Books []Book
 }
 
-// Add a Book/EBook to the library
-func (l *LibraryEnhanced) AddBook(book BookInterface) {
-	l.Books = append(l.Books, book)
-}
-
-// List all Books/EBooks
-func (l *LibraryEnhanced) ListBooks() {
-	for _, book := range l.Books {
-		fmt.Println(book.DisplayDetails())
-	}
-}
-
-// Method to search for books by title
-func (l *LibraryEnhanced) SearchBookByTitle(title string) []BookInterface {
-	var results []BookInterface
-	for _, book := range l.Books {
-		if strings.Contains(strings.ToLower(book.DisplayDetails()), strings.ToLower(title)) {
-			results = append(results, book)
+func (lib *Library) AddBook(book Book) error {
+	for _, b := range lib.Books {
+		if b.ISBN == book.ISBN {
+			return errors.New("duplicate ISBN")
 		}
 	}
-	return results
+	lib.Books = append(lib.Books, book)
+	return nil
 }
 
-// Remove a Book/EBook by ISBN
-func (l *LibraryEnhanced) RemoveBook(isbn string) error {
-	for i, book := range l.Books {
-		if book.DisplayDetails() == isbn {
-			l.Books = append(l.Books[:i], l.Books[i+1:]...)
+func (lib *Library) RemoveBook(isbn string) error {
+	for i, b := range lib.Books {
+		if b.ISBN == isbn {
+			lib.Books = append(lib.Books[:i], lib.Books[i+1:]...)
 			return nil
 		}
 	}
-	return fmt.Errorf("book with ISBN %s not found", isbn)
+	return errors.New("book not found")
+}
+
+func (lib *Library) SearchBookByTitle(title string) *Book {
+	for _, b := range lib.Books {
+		if b.Title == title {
+			return &b
+		}
+	}
+	return nil
+}
+
+func (lib *Library) ListBooks() {
+	for _, b := range lib.Books {
+		fmt.Printf("Title: %s, Author: %s, ISBN: %s\n", b.Title, b.Author, b.ISBN)
+		if b.IsEbook {
+			fmt.Println("This book is an eBook")
+		}
+	}
 }
